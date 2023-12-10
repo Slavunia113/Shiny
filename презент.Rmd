@@ -1,0 +1,54 @@
+---
+title: "Пример Shiny-приложения"
+author: "Ваше Имя"
+output: ioslides_presentation
+runtime: shiny
+---
+
+## Введение
+
+Это пример Shiny-приложения, которое строит гистограмму на основе введенных пользователем чисел.
+
+---
+
+## Интерфейс (UI)
+
+```{r, echo=FALSE}
+library(shiny)
+library(ggplot2)
+
+ui <- fluidPage(
+  # Текстовое поле для ввода чисел
+  textInput("numbers", "Введите числа (разделите пробелом):"),
+
+  # Кнопка для построения графика
+  actionButton("plotBtn", "Построить график"),
+
+  # Место для вывода графика
+  plotOutput("histogram")
+)
+
+# Определение серверной части (Server)
+server <- function(input, output) {
+  # Реакция на нажатие кнопки
+  observeEvent(input$plotBtn, {
+    # Получаем введенные числа и преобразуем их в вектор
+    numbers <- as.numeric(unlist(strsplit(input$numbers, " ")))
+
+    # Проверка на корректность введенных данных (числа)
+    if (!any(is.na(numbers))) {
+      # Построение гистограммы
+      output$histogram <- renderPlot({
+        ggplot(data.frame(numbers), aes(x = numbers)) +
+          geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+          labs(title = "Гистограмма введенных чисел", x = "Числа", y = "Частота")
+      })
+    } else {
+      # Вывод сообщения об ошибке в случае некорректного ввода
+      output$histogram <- renderText("Пожалуйста, введите корректные числа (разделите пробелом).")
+    }
+  })
+}
+
+# Сборка приложения
+shinyApp(ui = ui, server = server)
